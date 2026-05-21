@@ -20,12 +20,17 @@ import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
+import androidx.test.espresso.AppNotIdleException;
+import androidx.test.espresso.IdlingPolicies;
+import androidx.test.espresso.IdlingPolicy;
 import androidx.test.espresso.IdlingResourceTimeoutException;
 import androidx.test.espresso.base.IdlingResourceRegistry.IdleNotificationCallback;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -95,6 +100,10 @@ public class UiControllerImplTest {
 
   @Before
   public void setUp() throws Exception {
+    // Reset the master policy timeout to the default value.
+    IdlingPolicies.setMasterPolicyTimeout(2, TimeUnit.SECONDS);
+    IdlingPolicies.setIdlingResourceTimeout(1, TimeUnit.SECONDS);
+
     testThread = new LooperThread();
     testThread.setUncaughtExceptionHandler(
         new Thread.UncaughtExceptionHandler() {
@@ -127,6 +136,10 @@ public class UiControllerImplTest {
 
   @After
   public void tearDown() throws Exception {
+    // Reset the master policy timeout to the default value.
+    IdlingPolicies.setMasterPolicyTimeout(60, TimeUnit.SECONDS);
+    IdlingPolicies.setIdlingResourceTimeout(26, TimeUnit.SECONDS);
+
     testThread.quitLooper();
     asyncPool.shutdown();
   }
@@ -319,10 +332,10 @@ public class UiControllerImplTest {
                   }
                 }));
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(2, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!", latch.await(1, TimeUnit.SECONDS));
     assertEquals("Not all main thread tasks have checked in", 1L, latch.getCount());
     asyncTaskShouldComplete.countDown();
-    assertTrue("App should be idle.", latch.await(5, TimeUnit.SECONDS));
+    assertTrue("App should be idle.", latch.await(1, TimeUnit.SECONDS));
   }
 
   @Test
@@ -366,9 +379,63 @@ public class UiControllerImplTest {
                   }
                 }));
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(2, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     fakeResource.forceIdleNow();
-    assertTrue("App should be idle.", latch.await(5, TimeUnit.SECONDS));
+    assertTrue("App should be idle.", latch.await(1, TimeUnit.SECONDS));
+  }
+
+  @Test
+  public void loopMainThreadUntilIdle_racyIdleResource() throws InterruptedException {
+    IdlingPolicies.setMasterPolicyTimeout(100, TimeUnit.MILLISECONDS);
+    OnDemandIdlingResource fakeResource = new OnDemandIdlingResource("FakeResource");
+    idlingResourceRegistry.registerResources(singletonList(fakeResource));
+    final CountDownLatch startedLatch = new CountDownLatch(1);
+    final CountDownLatch interruptedLatch = new CountDownLatch(1);
+    assertTrue(
+        testThread
+            .getHandler()
+            .post(
+                () -> {
+                  // This is the sequence of events we want:
+                  // - Resource starts busy.
+                  // - Resource becomes idle, event posted to queue to update idle registry.
+                  // - Timeout occurs, no more events will be processed.
+                  // - Espresso detects race condition while checking if the resource is idle.
+                  IdlingPolicy masterIdlingPolicy = IdlingPolicies.getMasterIdlingPolicy();
+                  long expectedTimeout =
+                      SystemClock.uptimeMillis()
+                          + masterIdlingPolicy
+                              .getIdleTimeoutUnit()
+                              .toMillis(masterIdlingPolicy.getIdleTimeout());
+                  testThread
+                      .getHandler()
+                      .post(
+                          () -> {
+                            Log.i(TAG, "Forcing resource to be idle.");
+                            fakeResource.forceIdleNow();
+                            // Busy wait until after the timeout to ensure race buster cannot run.
+                            try {
+                              Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                              throw new RuntimeException(e);
+                            }
+                            assertTrue(
+                                "Sleep should bring us past the timeout.",
+                                SystemClock.uptimeMillis() > expectedTimeout);
+                          });
+
+                  Log.i(TAG, "Hijacking thread and looping it.");
+                  startedLatch.countDown();
+                  assertThrows(
+                      "Expected for loopMainThreadUntilIdle to be interrupted",
+                      AppNotIdleException.class,
+                      () -> uiController.get().loopMainThreadUntilIdle());
+                  interruptedLatch.countDown();
+                }));
+
+    assertTrue("looper has started.", startedLatch.await(2, TimeUnit.SECONDS));
+    assertTrue("App should be interrupted.", interruptedLatch.await(5, TimeUnit.SECONDS));
   }
 
   @Test
@@ -392,18 +459,22 @@ public class UiControllerImplTest {
                   }
                 }));
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(1, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     fakeResource1.forceIdleNow();
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(1, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     idlingResourceRegistry.registerResources(singletonList(fakeResource3));
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(1, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     fakeResource2.forceIdleNow();
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(1, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     fakeResource3.forceIdleNow();
-    assertTrue("App should be idle.", latch.await(5, TimeUnit.SECONDS));
+    assertTrue("App should be idle.", latch.await(1, TimeUnit.SECONDS));
   }
 
   @Test
@@ -430,13 +501,15 @@ public class UiControllerImplTest {
                   }
                 }));
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(4, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     goodResource.forceIdleNow();
     assertFalse(
-        "Should not have stopped looping the main thread yet!", latch.await(12, TimeUnit.SECONDS));
+        "Should not have stopped looping the main thread yet!",
+        latch.await(100, TimeUnit.MILLISECONDS));
     kindaCrappyResource.forceIdleNow();
     assertTrue(
-        "Should have caught IdlingResourceTimeoutException", latch.await(11, TimeUnit.SECONDS));
+        "Should have caught IdlingResourceTimeoutException", latch.await(900, TimeUnit.SECONDS));
   }
 
   @Test

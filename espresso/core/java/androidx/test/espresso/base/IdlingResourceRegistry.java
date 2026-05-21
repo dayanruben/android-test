@@ -26,6 +26,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.espresso.IdlingPolicies;
 import androidx.test.espresso.IdlingPolicy;
 import androidx.test.espresso.IdlingResource;
@@ -363,7 +364,8 @@ public final class IdlingResourceRegistry {
         timeoutError, error.getIdleTimeoutUnit().toMillis(error.getIdleTimeout()));
   }
 
-  List<String> getBusyResources() {
+  @Nullable
+  private List<String> pollBusyResourceNames() {
     List<String> busyResourceNames = new ArrayList<>();
     List<IdlingState> racyResources = new ArrayList<>();
 
@@ -388,6 +390,17 @@ public final class IdlingResourceRegistry {
     } else {
       return busyResourceNames;
     }
+  }
+
+  @NonNull
+  String describeBusyResources() {
+    List<String> busyResourceNames = new ArrayList<>();
+    for (IdlingState state : idlingStates) {
+      if (!state.idle) {
+        busyResourceNames.add(state.resource.getName());
+      }
+    }
+    return String.join(", ", busyResourceNames);
   }
 
   private class IdlingState implements ResourceCallback {
@@ -508,7 +521,7 @@ public final class IdlingResourceRegistry {
     }
 
     private void handleTimeoutWarning() {
-      List<String> busyResources = getBusyResources();
+      List<String> busyResources = pollBusyResourceNames();
       if (busyResources == null) {
         // null indicates that there is either a race or a programming error
         // a race detector message has been inserted into the q.
@@ -525,7 +538,7 @@ public final class IdlingResourceRegistry {
     }
 
     private void handleTimeout() {
-      List<String> busyResources = getBusyResources();
+      List<String> busyResources = pollBusyResourceNames();
       if (busyResources == null) {
         // detected a possible race... we've enqueued a race busting message
         // so either that'll resolve the race or kill the app because it's buggy.

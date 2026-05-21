@@ -35,9 +35,7 @@ import androidx.annotation.VisibleForTesting;
 import androidx.test.espresso.IdlingPolicies;
 import androidx.test.espresso.IdlingPolicy;
 import androidx.test.espresso.InjectEventSecurityException;
-import androidx.test.espresso.UiController;
 import androidx.test.espresso.base.IdlingResourceRegistry.IdleNotificationCallback;
-import androidx.test.espresso.util.StringJoinerKt;
 import androidx.test.espresso.util.concurrent.ThreadFactoryBuilder;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -77,7 +75,8 @@ final class UiControllerImpl
     COMPAT_TASKS_HAVE_IDLED,
     KEY_INJECT_HAS_COMPLETED,
     MOTION_INJECTION_HAS_COMPLETED,
-    DYNAMIC_TASKS_HAVE_IDLED;
+    DYNAMIC_TASKS_HAVE_IDLED,
+    POSSIBLE_RACE_CONDITION_DETECTED;
 
     /** Checks whether this condition has been signaled. */
     public boolean isSignaled(BitSet conditionSet) {
@@ -156,7 +155,6 @@ final class UiControllerImpl
   private IdleNotifier<Runnable> asyncIdle;
   private IdleNotifier<Runnable> compatIdle;
   private Provider<IdleNotifier<IdleNotificationCallback>> dynamicIdleProvider;
-  private Interrogator interrogator;
 
   @VisibleForTesting
   @Inject
@@ -550,13 +548,12 @@ final class UiControllerImpl
                 dynamicIdle = dynamicIdleProvider.get();
               }
 
-              List<String> busyResources = idlingResourceRegistry.getBusyResources();
               conditionName =
                   String.format(
                       Locale.ROOT,
                       "%s(busy resources=%s)",
                       conditionName,
-                      StringJoinerKt.joinToString(busyResources, ","));
+                      idlingResourceRegistry.describeBusyResources());
               break;
             default:
               break;
@@ -588,6 +585,7 @@ final class UiControllerImpl
     }
     return dynamicIdle;
   }
+
   @Override
   public void interruptEspressoTasks() {
     controllerHandler.post(
