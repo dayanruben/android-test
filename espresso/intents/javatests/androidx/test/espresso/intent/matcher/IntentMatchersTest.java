@@ -19,6 +19,8 @@ package androidx.test.espresso.intent.matcher;
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static androidx.test.espresso.intent.matcher.BundleMatchers.hasEntry;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.doesNotHaveExtraWithKey;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.doesNotHaveFlag;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.doesNotHaveFlags;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.filterEquals;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasCategories;
@@ -471,6 +473,50 @@ public class IntentMatchersTest {
     intent.addFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION | 8);
     assertFalse((hasFlags(16)).matches(intent));
     assertFalse((hasFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | 8)).matches(intent));
+  }
+
+  @Test
+  public void doesNotHaveFlagsWithSingleFlag() {
+    Intent intent = new Intent();
+    assertTrue(doesNotHaveFlags(0).matches(intent));
+    assertTrue(doesNotHaveFlags(0).matches(new Intent().setFlags(1)));
+    assertTrue(doesNotHaveFlag(Intent.FLAG_GRANT_READ_URI_PERMISSION).matches(intent));
+    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    assertFalse(doesNotHaveFlag(Intent.FLAG_GRANT_READ_URI_PERMISSION).matches(intent));
+    assertFalse(doesNotHaveFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).matches(intent));
+  }
+
+  @Test
+  public void doesNotHaveFlagsWithMultipleFlags() {
+    Intent intent = new Intent();
+    intent.setFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION | Intent.FLAG_ACTIVITY_NO_HISTORY);
+    assertTrue(doesNotHaveFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS).matches(intent));
+    assertFalse(doesNotHaveFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION).matches(intent));
+    assertFalse(doesNotHaveFlags(Intent.FLAG_ACTIVITY_NO_HISTORY).matches(intent));
+    assertFalse(
+        doesNotHaveFlags(
+                Intent.FLAG_DEBUG_LOG_RESOLUTION | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            .matches(intent));
+    assertFalse(
+        doesNotHaveFlags(
+                Intent.FLAG_DEBUG_LOG_RESOLUTION, Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            .matches(intent));
+    assertTrue(
+        doesNotHaveFlags(
+                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS,
+                Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY)
+            .matches(intent));
+  }
+
+  @Test
+  public void doesNotHaveFlagsWithCustomFlags() {
+    Intent intent = new Intent();
+    intent.addFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION | 8);
+    assertTrue((doesNotHaveFlags(16)).matches(intent));
+    assertTrue((doesNotHaveFlags(Intent.FLAG_ACTIVITY_NO_HISTORY, 16)).matches(intent));
+    assertFalse((doesNotHaveFlags(8 | 2)).matches(intent));
+    assertFalse((doesNotHaveFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION, 4)).matches(intent));
+    assertFalse((doesNotHaveFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION, 8, 4)).matches(intent));
   }
 
   @Test

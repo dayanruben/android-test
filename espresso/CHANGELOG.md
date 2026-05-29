@@ -23,6 +23,8 @@ The following artifacts were released:
 
 **New Features**
 
+* Add `doesNotHaveFlag` and `doesNotHaveFlags` matchers to `IntentMatchers`.
+
 **Breaking Changes**
 
 **API Changes**

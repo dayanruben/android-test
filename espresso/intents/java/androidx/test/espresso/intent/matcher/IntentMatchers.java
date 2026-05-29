@@ -340,6 +340,34 @@ public final class IntentMatchers {
     };
   }
 
+  public static Matcher<Intent> doesNotHaveFlag(int flag) {
+    return doesNotHaveFlags(flag);
+  }
+
+  public static Matcher<Intent> doesNotHaveFlags(int... flags) {
+    int allFlags = 0;
+    for (int i : flags) {
+      allFlags |= i;
+    }
+    return doesNotHaveFlags(allFlags);
+  }
+
+  public static Matcher<Intent> doesNotHaveFlags(final int flags) {
+
+    return new TypeSafeMatcher<Intent>() {
+      @Override
+      public void describeTo(Description description) {
+        description.appendText("does not have flags: " + Integer.toHexString(flags));
+      }
+
+      @Override
+      public boolean matchesSafely(Intent intent) {
+        int intentFlags = intent.getFlags();
+        return ((intentFlags & flags) == 0);
+      }
+    };
+  }
+
   /** Matches an intent if it {@link Intent#filterEquals(Intent)} the expected intent. */
   public static Matcher<Intent> filterEquals(Intent expectedIntent) {
     return new TypeSafeMatcher<Intent>() {
