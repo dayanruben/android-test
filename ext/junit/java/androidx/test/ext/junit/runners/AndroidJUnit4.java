@@ -36,9 +36,9 @@ import org.junit.runners.model.InitializationError;
  *
  * <ul>
  *   <li>Supports running on Robolectric. This implementation will delegate to RobolectricTestRunner
- *       if test is running in Robolectric enviroment. A custom runner can be provided by specifying
- *       the full class name in a 'android.junit.runner' system property.
- *   <li>Supports a per-test timeout - specfied via a 'timeout_msec' {@link
+ *       if test is running in Robolectric environment. A custom runner can be provided by
+ *       specifying the full class name in a 'android.junit.runner' system property.
+ *   <li>Supports a per-test timeout - specified via a 'timeout_msec' {@link
  *       androidx.test.runner.AndroidJUnitRunner} argument.
  *   <li>Supports running tests on the application's UI Thread, for tests annotated with {@link
  *       androidx.test.annotation.UiThreadTest}.
