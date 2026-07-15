@@ -1,1 +1,24 @@
 // Signature format: 5.0
+package @RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP) @RestrictTo({androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP}) androidx.test.espresso.web.util.concurrent {
+
+  public interface AsyncFunction<I, O> {
+    method public com.google.common.util.concurrent.ListenableFuture<O> apply(I?) throws java.lang.Exception;
+  }
+
+  public interface FutureCallback<V> {
+    method public void onFailure(Throwable);
+    method public void onSuccess(V?);
+  }
+
+  public final class Futures {
+    method public static <V> void addCallback(com.google.common.util.concurrent.ListenableFuture<V>, androidx.test.espresso.web.util.concurrent.FutureCallback<? super V>, java.util.concurrent.Executor);
+    method public static <V> V? getDone(java.util.concurrent.Future<V>) throws java.util.concurrent.ExecutionException;
+    method public static <V> V? getUninterruptibly(java.util.concurrent.Future<V>) throws java.util.concurrent.ExecutionException;
+    method public static <V> com.google.common.util.concurrent.ListenableFuture<V> immediateFailedFuture(Throwable);
+    method public static <V> com.google.common.util.concurrent.ListenableFuture<V> immediateFuture(V?);
+    method public static <I, O> com.google.common.util.concurrent.ListenableFuture<O> transform(com.google.common.util.concurrent.ListenableFuture<I>, kotlin.jvm.functions.Function1<? super I,? extends O>, java.util.concurrent.Executor);
+    method public static <I, O> com.google.common.util.concurrent.ListenableFuture<O> transformAsync(com.google.common.util.concurrent.ListenableFuture<I>, androidx.test.espresso.web.util.concurrent.AsyncFunction<? super I,? extends O>, java.util.concurrent.Executor);
+  }
+
+}
+
