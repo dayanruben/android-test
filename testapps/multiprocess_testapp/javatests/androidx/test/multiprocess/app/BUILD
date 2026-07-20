@@ -17,7 +17,7 @@ licenses(["notice"])
 # Tests
 # =========================================================
 
-DEVICES = devices([23])
+DEVICES = devices([28])
 
 axt_android_application_test(
     name = "DefaultProcessActivityTest",

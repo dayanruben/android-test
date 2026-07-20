@@ -23,7 +23,8 @@
 
   <instrumentation
     android:name="androidx.test.runner.AndroidJUnitRunner"
-    android:targetPackage="androidx.test.multiprocess.app">
+    android:targetPackage="androidx.test.multiprocess.app"
+    android:targetProcesses="*">
     <meta-data
       android:name="remoteMethod"
       android:value="androidx.test.espresso.remote.EspressoRemote#remoteInit"/>
