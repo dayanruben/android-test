@@ -449,7 +449,7 @@ public class TestRequestBuilder {
           (Class<? extends Annotation>)
               Class.forName("android.test.suitebuilder.annotation.Suppress");
       filter = filter.intersect(new AnnotationExclusionFilter(legacySuppressClass));
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | LinkageError e) {
       // ignore
     }
   }
@@ -817,7 +817,7 @@ public class TestRequestBuilder {
     try {
       Class<?> clazz = Class.forName(className);
       return (Class<? extends Annotation>) clazz;
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | LinkageError e) {
       Log.e(TAG, String.format("Could not find annotation class: %s", className));
     } catch (ClassCastException e) {
       Log.e(TAG, String.format("Class %s is not an annotation", className));

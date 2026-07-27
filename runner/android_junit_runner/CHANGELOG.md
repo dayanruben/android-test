@@ -6,6 +6,8 @@
 
 **Bug Fixes**
 
+* Catch LinkageError when loading annotation classes (b/536117227)
+
 **New Features**
 
 * Make perfetto trace sections for tests more identifiable by prefixing with "test:" and using fully qualified class name. (b/204992764)
