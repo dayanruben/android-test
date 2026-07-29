@@ -8,7 +8,7 @@ import com.google.common.truth.Correspondence;
  * Collection of {@link com.google.common.truth.Correspondence} helpers for asserting lists of
  * {@link Intent}s.
  *
- * @see {@link com.google.common.truth.IterableSubject#comparingElementsUsing(Correspondence)}
+ * @see com.google.common.truth.IterableSubject#comparingElementsUsing(Correspondence)
  */
 public final class IntentCorrespondences {
 
