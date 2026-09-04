@@ -25,6 +25,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -72,7 +73,7 @@ public class SpeakEasyService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     onStart(intent, startId);
-    return START_NOT_STICKY;
+    return START_STICKY;
   }
 
   @Override
@@ -108,6 +109,9 @@ public class SpeakEasyService extends Service {
   }
 
   private void serveIntent(Intent in, int startId) {
+    if (in == null || in.getExtras() == null) {
+      return;
+    }
     SpeakEasyProtocol sep = SpeakEasyProtocol.fromBundle(in.getExtras());
     if (null == sep) {
       return;
@@ -148,9 +152,14 @@ public class SpeakEasyService extends Service {
     }
   }
 
+  private final IBinder binder = new Binder();
+
   @Override
   public IBinder onBind(Intent i) {
-    return null;
+    if (i != null && i.getExtras() != null) {
+      serveIntent(i, -1);
+    }
+    return binder;
   }
 
   private static class DeathCallback implements SpeakEasy.BinderDeathCallback {

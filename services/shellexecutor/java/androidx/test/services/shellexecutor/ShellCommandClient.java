@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Client for the ShellCommandExecutor service, to allow an instrumentation to executes a shell
@@ -44,6 +45,7 @@ import java.util.Map;
 final class ShellCommandClient {
 
   private static final String TAG = "ShellCommandClient";
+  private static final ConcurrentHashMap<String, Command> stubCache = new ConcurrentHashMap<>();
 
   private ShellCommandClient() {
     // Should not be initialized
@@ -88,25 +90,28 @@ final class ShellCommandClient {
       shellEnv = new HashMap<>();
     }
 
-    FindResult result;
-
-    try {
-      result = BlockingFind.getResult(Looper.getMainLooper(), context, secret);
-      if (!result.found) {
-        Log.e(TAG, "Couldn't find a published binder");
+    Command commandStub = stubCache.get(secret);
+    if (commandStub == null || !commandStub.asBinder().isBinderAlive()) {
+      FindResult result;
+      try {
+        result = BlockingFind.getResult(Looper.getMainLooper(), context, secret);
+        if (!result.found) {
+          Log.e(TAG, "Couldn't find a published binder");
+          throw new ClientNotConnected(
+              "Couldn't find a binder published by androidx.test.services. It is very likely that"
+                  + " androidx.test.services was killed, which is usually due to low memory"
+                  + " conditions. Consider switching to a device with more memory.");
+        }
+      } catch (InterruptedException e) {
         throw new ClientNotConnected(
-            "Couldn't find a binder published by androidx.test.services. It is very likely that"
-                + " androidx.test.services was killed, which is usually due to low memory"
-                + " conditions. Consider switching to a device with more memory.");
+            "Search for an androidx.test.services binder was interrupted", e);
       }
-    } catch (InterruptedException e) {
-      throw new ClientNotConnected(
-          "Search for an androidx.test.services binder was interrupted", e);
+      commandStub = Command.Stub.asInterface(result.binder);
+      stubCache.put(secret, commandStub);
     }
 
     ParcelFileDescriptor[] pipe = ParcelFileDescriptor.createPipe();
 
-    Command commandStub = Command.Stub.asInterface(result.binder);
     // Only use timeout version if timeout is greater than 0
     if (timeoutMs > 0L) {
       // NOTICE: this is not be supported on older versions of the Command server.

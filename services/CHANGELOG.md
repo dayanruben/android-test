@@ -6,6 +6,9 @@
 
 **Bug Fixes**
 
+* Make ShellExecutor more resilient to low memory conditions by binding to
+  androidx.test.services.SpeakEasyService
+
 **New Features**
 
 **Breaking Changes**

@@ -16,16 +16,20 @@
 
 package androidx.test.services.speakeasy.client;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 import androidx.test.services.speakeasy.SpeakEasyProtocol;
 import java.security.SecureRandom;
 import java.util.Random;
 
 /** Allows callers to access the speakeasy binder registry when they have a Context. */
 public final class AppConnection implements Connection {
+  private static final String TAG = "AppConnection";
   private static final String PACKAGE_NAME = "androidx.test.services";
   static final String SERVICE =
       "androidx.test.services.speakeasy.server.SpeakEasyService";
@@ -45,11 +49,36 @@ public final class AppConnection implements Connection {
     this.random = checkNotNull(random);
   }
 
+  private static final ServiceConnection serviceConnection =
+      new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {}
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {}
+      };
+  private static boolean isBound = false;
+
+  private synchronized void ensureBound() {
+    if (!isBound) {
+      try {
+        isBound =
+            context.bindService(
+                makeIntent(),
+                serviceConnection,
+                Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT | Context.BIND_ABOVE_CLIENT);
+      } catch (SecurityException | IllegalArgumentException e) {
+        Log.w(TAG, "Failed to bind to SpeakEasyService", e);
+      }
+    }
+  }
+
   @Override
   public void publish(IBinder binder, PublishResultReceiver rr) {
     checkNotNull(binder);
     checkNotNull(rr);
 
+    ensureBound();
     String key = Long.toHexString(random.nextLong());
     Intent intent = makeIntent();
     intent.putExtras(SpeakEasyProtocol.Publish.asBundle(key, binder, rr));
@@ -60,6 +89,8 @@ public final class AppConnection implements Connection {
   public void find(String key, FindResultReceiver rr) {
     checkNotNull(key);
     checkNotNull(rr);
+
+    ensureBound();
     Intent intent = makeIntent();
     intent.putExtras(SpeakEasyProtocol.Find.asBundle(key, rr));
     startForegroundService(context, intent);
