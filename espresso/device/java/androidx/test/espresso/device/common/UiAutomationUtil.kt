@@ -18,9 +18,7 @@
 
 package androidx.test.espresso.device.common
 
-import android.os.Build
 import android.os.ParcelFileDescriptor.AutoCloseInputStream
-import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.annotation.RestrictTo.Scope
 import androidx.test.platform.app.InstrumentationRegistry
@@ -36,7 +34,6 @@ import java.nio.charset.Charset
  * @hide
  */
 @RestrictTo(Scope.LIBRARY)
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun executeShellCommand(command: String): String {
   val parcelFileDescriptor =
     InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command)

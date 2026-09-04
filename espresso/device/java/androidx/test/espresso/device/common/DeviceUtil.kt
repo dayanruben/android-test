@@ -19,7 +19,6 @@
 package androidx.test.espresso.device.common
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import java.util.regex.Pattern
 
@@ -118,7 +117,6 @@ fun getMapOfDeviceStateNamesToIdentifiers(): MutableMap<String, String> {
  *
  * @hide
  */
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 fun calculateCurrentDisplayWidthAndHeightPx(): Pair<Int, Int> {
   // "wm size" will output a string with the format

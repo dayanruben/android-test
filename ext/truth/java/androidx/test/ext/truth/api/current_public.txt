@@ -137,7 +137,7 @@ package androidx.test.ext.truth.os {
     method public void recreatesEqual(android.os.Parcelable.Creator<T>!);
   }
 
-  @RequiresApi(android.os.Build.VERSION_CODES.LOLLIPOP) public final class PersistableBundleSubject extends com.google.common.truth.Subject {
+  public final class PersistableBundleSubject extends com.google.common.truth.Subject {
     method public static androidx.test.ext.truth.os.PersistableBundleSubject! assertThat(android.os.PersistableBundle!);
     method public final com.google.common.truth.BooleanSubject! bool(String!);
     method public final com.google.common.truth.PrimitiveBooleanArraySubject! booleanArray(String!);

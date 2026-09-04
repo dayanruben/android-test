@@ -16,7 +16,6 @@
 package androidx.test.ext.junit.rules;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Environment;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.platform.io.PlatformTestStorageRegistry;
@@ -64,12 +63,8 @@ public final class DeleteFilesRule implements TestRule {
         if (context.getExternalCacheDir() != null) {
           directories.add(context.getExternalCacheDir());
         }
-        if (Build.VERSION.SDK_INT >= 21) {
-          directories.add(context.getNoBackupFilesDir());
-        }
-        if (Build.VERSION.SDK_INT >= 24) {
-          directories.add(new File(context.getApplicationInfo().deviceProtectedDataDir));
-        }
+        directories.add(context.getNoBackupFilesDir());
+        directories.add(new File(context.getApplicationInfo().deviceProtectedDataDir));
 
         Set<File> existingFiles = new HashSet<>();
         for (File directory : directories) {

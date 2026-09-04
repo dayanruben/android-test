@@ -20,7 +20,7 @@
     package="androidx.test.multiprocess.app" >
 
     <uses-sdk
-      android:minSdkVersion = "23"
+      android:minSdkVersion = "24"
       android:targetSdkVersion= "33"/>
 
     <application

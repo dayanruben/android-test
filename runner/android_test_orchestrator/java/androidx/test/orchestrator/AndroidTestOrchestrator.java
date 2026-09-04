@@ -37,7 +37,6 @@ import android.content.ServiceConnection;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.IBinder;
@@ -208,10 +207,6 @@ public final class AndroidTestOrchestrator extends android.app.Instrumentation
   }
 
   private void grantRuntimePermissions(List<String> permissions) {
-    if (Build.VERSION.SDK_INT < 24) {
-      // Only grant runtime permissions on API 24 and up
-      return;
-    }
     Context context = getContext();
     for (String permission : permissions) {
       if (PackageManager.PERMISSION_GRANTED == context.checkCallingOrSelfPermission(permission)) {
@@ -414,9 +409,7 @@ public final class AndroidTestOrchestrator extends android.app.Instrumentation
     try {
       Context context = getContext();
       // Support for directBootMode
-      if (Build.VERSION.SDK_INT >= 24) {
-        context = ContextCompat.createDeviceProtectedStorageContext(context);
-      }
+      context = ContextCompat.createDeviceProtectedStorageContext(context);
       return context.openFileOutput(getOutputFile(test), 0);
     } catch (FileNotFoundException e) {
       throw new RuntimeException("Could not open stream for output");

@@ -48,7 +48,7 @@ final class ConfigurationSynchronizationUtils {
       Activity currentActivity, UiController uiController, Context appContext) {
     // The activity's orientation can differ from application's orientation when the activity is in
     // multi-window mode.
-    if (Build.VERSION.SDK_INT >= 24 && currentActivity.isInMultiWindowMode()) {
+    if (currentActivity.isInMultiWindowMode()) {
       return;
     }
     // If the application is running activities in different processes, activities that aren't

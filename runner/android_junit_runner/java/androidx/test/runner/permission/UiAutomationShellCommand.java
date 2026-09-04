@@ -18,7 +18,6 @@ package androidx.test.runner.permission;
 
 import static androidx.test.internal.util.Checks.checkNotNull;
 
-import android.annotation.TargetApi;
 import android.app.UiAutomation;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -34,7 +33,6 @@ import java.util.concurrent.TimeoutException;
  * {@link ShellCommand} implementation which uses {@link UiAutomation} to grant a permission at
  * runtime.
  */
-@TargetApi(value = 23)
 class UiAutomationShellCommand extends ShellCommand {
 
   private static final String TAG = "UiAutomationShellCmd";

@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * An {@link EventInjectionStrategy} that uses the input manager to inject Events. This strategy
- * supports API level 23 and above.
+ * supports API level 24 and above.
  */
 final class InputManagerEventInjectionStrategy implements EventInjectionStrategy {
   private static final String TAG = "EventInjectionStrategy";

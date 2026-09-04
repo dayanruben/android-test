@@ -18,11 +18,9 @@
 
 package androidx.test.espresso.device.common
 
-import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.provider.Settings
-import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.test.platform.app.InstrumentationRegistry
 import java.util.concurrent.CountDownLatch
@@ -34,7 +32,7 @@ fun getAccelerometerRotationSetting(): AccelerometerRotation =
     Settings.System.getInt(
       InstrumentationRegistry.getInstrumentation().getTargetContext().getContentResolver(),
       Settings.System.ACCELEROMETER_ROTATION,
-      0
+      0,
     ) == 1
   ) {
     AccelerometerRotation.ENABLED
@@ -42,7 +40,6 @@ fun getAccelerometerRotationSetting(): AccelerometerRotation =
     AccelerometerRotation.DISABLED
   }
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 fun setAccelerometerRotationSetting(accelerometerRotation: AccelerometerRotation) {
   val context = InstrumentationRegistry.getInstrumentation().getTargetContext()
@@ -55,7 +52,7 @@ fun setAccelerometerRotationSetting(accelerometerRotation: AccelerometerRotation
       runnableHandler,
       context,
       settingsLatch,
-      Settings.System.ACCELEROMETER_ROTATION
+      Settings.System.ACCELEROMETER_ROTATION,
     )
   settingsObserver.observe()
   executeShellCommand("settings put system accelerometer_rotation ${accelerometerRotation.value}")
@@ -67,5 +64,5 @@ fun setAccelerometerRotationSetting(accelerometerRotation: AccelerometerRotation
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 enum class AccelerometerRotation(val value: Int) {
   DISABLED(0),
-  ENABLED(1)
+  ENABLED(1),
 }

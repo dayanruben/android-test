@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
 import android.app.Activity;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
@@ -226,19 +225,13 @@ public final class RootMatchers {
 
     @Override
     public boolean matchesSafely(Root item) {
-      String popupClassName = "android.widget.PopupWindow$PopupViewContainer";
-      if (Build.VERSION.SDK_INT >= 23) {
-        popupClassName = "android.widget.PopupWindow$PopupDecorView";
-      }
+      String popupClassName = "android.widget.PopupWindow$PopupDecorView";
       return withDecorView(withClassName(is(popupClassName))).matches(item);
     }
 
     @Override
     public void describeTo(Description description) {
-      String popupClassName = "PopupWindow$PopupViewContainer";
-      if (Build.VERSION.SDK_INT >= 23) {
-        popupClassName = "PopupWindow$PopupDecorView";
-      }
+      String popupClassName = "PopupWindow$PopupDecorView";
       description.appendText("with decor view of type " + popupClassName);
     }
   }

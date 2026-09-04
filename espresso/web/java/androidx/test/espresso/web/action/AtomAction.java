@@ -21,7 +21,6 @@ import static androidx.test.espresso.web.util.concurrent.Futures.transform;
 import static androidx.test.internal.util.Checks.checkNotNull;
 import static androidx.test.internal.util.Checks.checkState;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
@@ -113,7 +112,7 @@ public final class AtomAction<E> implements ViewAction, Bindable {
   @Override
   public void perform(UiController uiController, View view) {
     WebView webView = (WebView) view;
-    if (Build.VERSION.SDK_INT >= 23 && !webView.isHardwareAccelerated()) {
+    if (!webView.isHardwareAccelerated()) {
       throw new PerformException.Builder()
           .withViewDescription(webView.toString())
           .withCause(
@@ -124,16 +123,6 @@ public final class AtomAction<E> implements ViewAction, Bindable {
     String script = checkNotNull(atom.getScript());
     final ListenableFuture<Evaluation> localEval =
         JavascriptEvaluation.evaluate(webView, script, arguments, window);
-    if (null != window && Build.VERSION.SDK_INT == 19) {
-      Log.w(
-          TAG,
-          "WARNING: KitKat does not report when an iframe is loading new content. "
-              + "If you are interacting with content within an iframe and that content is changing "
-              + "(eg: you have just pressed a submit button). Espresso will not be able to block "
-              + "you until the new content has loaded (which it can do on all other API levels). "
-              + "You will need to have some custom polling / synchronization with the iframe in "
-              + "that case.");
-    }
 
     localEval.addListener(
         new Runnable() {

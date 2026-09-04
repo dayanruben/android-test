@@ -21,12 +21,9 @@ import static androidx.test.internal.util.Checks.checkState;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.fail;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import androidx.annotation.ChecksSdkIntAtLeast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.RestrictTo.Scope;
@@ -54,13 +51,9 @@ import java.util.HashSet;
  * @hide
  */
 @RestrictTo(Scope.LIBRARY_GROUP) // used by rule
-@TargetApi(value = 23)
 public class PermissionRequester implements PermissionGranter {
 
   private static final String TAG = "PermissionRequester";
-
-  @ChecksSdkIntAtLeast(extension = 0)
-  private int androidRuntimeVersion = Build.VERSION.SDK_INT;
 
   @NonNull private final Context targetContext;
 
@@ -80,70 +73,42 @@ public class PermissionRequester implements PermissionGranter {
    * Adds a permission to the list of permissions which will be requested when {@link
    * #requestPermissions()} is called.
    *
-   * <p>Precondition: This method does nothing when called on an API level lower than {@link
-   * Build.VERSION_CODES#M}.
-   *
    * @param permissions a list of Android runtime permissions.
    */
   @Override
   public void addPermissions(@NonNull String... permissions) {
     checkNotNull(permissions, "permissions cannot be null!");
-    if (deviceSupportsRuntimePermissions()) {
-      for (String permission : permissions) {
-        assertFalse("Permission String is empty or null!", TextUtils.isEmpty(permission));
-        GrantPermissionCallable requestPermissionCallable =
-            new GrantPermissionCallable(
-                new UiAutomationShellCommand(
-                    targetContext.getPackageName(), permission, PmCommand.GRANT_PERMISSION),
-                targetContext,
-                permission);
-        checkState(requestedPermissions.add(requestPermissionCallable));
-      }
+    for (String permission : permissions) {
+      assertFalse("Permission String is empty or null!", TextUtils.isEmpty(permission));
+      GrantPermissionCallable requestPermissionCallable =
+          new GrantPermissionCallable(
+              new UiAutomationShellCommand(
+                  targetContext.getPackageName(), permission, PmCommand.GRANT_PERMISSION),
+              targetContext,
+              permission);
+      checkState(requestedPermissions.add(requestPermissionCallable));
     }
   }
 
   /**
    * Request all permissions previously added using {@link #addPermissions(String...)}
-   *
-   * <p>Precondition: This method does nothing when called on an API level lower than {@link
-   * Build.VERSION_CODES#M}.
    */
   @Override
   public void requestPermissions() {
-    if (deviceSupportsRuntimePermissions()) {
-      for (RequestPermissionCallable requestPermissionCallable : requestedPermissions) {
-        try {
-          if (RequestPermissionCallable.Result.FAILURE == requestPermissionCallable.call()) {
-            fail("Failed to grant permissions, see logcat for details");
-            return;
-          }
-        } catch (Exception exception) {
-          Log.e(TAG, "An Exception was thrown while granting permission", exception);
+    for (RequestPermissionCallable requestPermissionCallable : requestedPermissions) {
+      try {
+        if (RequestPermissionCallable.Result.FAILURE == requestPermissionCallable.call()) {
           fail("Failed to grant permissions, see logcat for details");
           return;
         }
+      } catch (Exception exception) {
+        Log.e(TAG, "An Exception was thrown while granting permission", exception);
+        fail("Failed to grant permissions, see logcat for details");
+        return;
       }
     }
   }
 
   @VisibleForTesting
-  protected void setAndroidRuntimeVersion(int sdkInt) {
-    androidRuntimeVersion = sdkInt;
-  }
-
-  private boolean deviceSupportsRuntimePermissions() {
-    boolean supportsRuntimePermissions = getAndroidRuntimeVersion() >= 23;
-    if (!supportsRuntimePermissions) {
-      // TODO: replace with Assume.assumeTrue() once we bumped gradle plugin version to 2.0
-      Log.w(
-          TAG,
-          "Permissions can only be granted on devices running Android M (API 23) or"
-              + "higher. This rule is ignored.");
-    }
-    return supportsRuntimePermissions;
-  }
-
-  private int getAndroidRuntimeVersion() {
-    return androidRuntimeVersion;
-  }
+  protected void setAndroidRuntimeVersion(int sdkInt) {}
 }

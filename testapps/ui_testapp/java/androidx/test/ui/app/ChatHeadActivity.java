@@ -17,24 +17,18 @@
 package androidx.test.ui.app;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Upon creating this activity will start the {@link ChatHeadService} that will create a floating
  * button on the screen.
  */
 public class ChatHeadActivity extends Activity {
-
-  private static final String TAG = "ChatHeadActivity";
 
   private static final int REQUEST_CODE = 1337;
 
@@ -65,43 +59,25 @@ public class ChatHeadActivity extends Activity {
   }
 
   private void checkDrawOverlayPermission() {
-    if (VERSION.SDK_INT >= 23) {
-      if (!reflectiveCanDrawOverlays()) {
-        // To satisfy F5 project
-        Intent intent = new Intent("android.settings.action.MANAGE_OVERLAY_PERMISSION",
-            Uri.parse("package:" + getPackageName()));
-        this.startActivityForResult(intent, REQUEST_CODE);
-      }
-    } else {
-      startChatHeadService();
+    if (!Settings.canDrawOverlays(this)) {
+      // To satisfy F5 project
+      Intent intent =
+          new Intent(
+              "android.settings.action.MANAGE_OVERLAY_PERMISSION",
+              Uri.parse("package:" + getPackageName()));
+      this.startActivityForResult(intent, REQUEST_CODE);
     }
   }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (VERSION.SDK_INT >= 23) {
-      if (requestCode == REQUEST_CODE) {
-        if (reflectiveCanDrawOverlays()) {
-          // continue here - permission was granted
-          startChatHeadService();
-        } else {
-          Toast.makeText(this, "No permissions", Toast.LENGTH_LONG).show();
-        }
+    if (requestCode == REQUEST_CODE) {
+      if (Settings.canDrawOverlays(this)) {
+        // continue here - permission was granted
+        startChatHeadService();
+      } else {
+        Toast.makeText(this, "No permissions", Toast.LENGTH_LONG).show();
       }
     }
-  }
-
-  private boolean reflectiveCanDrawOverlays() {
-    try {
-      return ((Boolean) Settings.class.getDeclaredMethod("canDrawOverlays", Context.class)
-          .invoke(null, this));
-    } catch (IllegalAccessException e) {
-      Log.e(TAG, "IllegalAccessException", e);
-    } catch (InvocationTargetException e) {
-      Log.e(TAG, "InvocationTargetException", e);
-    } catch (NoSuchMethodException e) {
-      Log.e(TAG, "NoSuchMethodException", e);
-    }
-    return false;
   }
 }

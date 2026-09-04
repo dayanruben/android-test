@@ -18,16 +18,13 @@ package androidx.test.runner.permission;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
-import android.os.Build;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.permission.RequestPermissionCallable.Result;
@@ -125,18 +122,6 @@ public class PermissionRequesterTest {
     verify(stubbedCallable).call();
   }
 
-  @Test
-  public void deviceNotSupportsPermissionSkipsTest() throws Throwable {
-    withRuntimeVersion(Build.VERSION_CODES.LOLLIPOP_MR1);
-    permissionRequester.addPermissions(RUNTIME_PERMISSION1);
-
-    assertThat(permissionRequester.requestedPermissions, hasSize(0));
-  }
-
-  private void withRuntimeVersion(int sdkInt) {
-    assertThat(sdkInt, is(greaterThan(Build.VERSION_CODES.FROYO)));
-    permissionRequester.setAndroidRuntimeVersion(sdkInt);
-  }
 
   private void withStubbedTargetPackage() {
     when(targetContext.getPackageName()).thenReturn(TARGET_PACKAGE);

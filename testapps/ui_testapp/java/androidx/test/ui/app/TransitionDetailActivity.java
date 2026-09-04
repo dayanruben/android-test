@@ -17,7 +17,6 @@
 package androidx.test.ui.app;
 
 import android.app.Activity;
-import android.os.Build;
 import android.os.Bundle;
 import android.transition.Transition;
 import android.widget.ImageView;
@@ -74,7 +73,7 @@ public class TransitionDetailActivity extends Activity {
             mTransitionActivityItem.getName(),
             mTransitionActivityItem.getAuthor()));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && addTransitionListener()) {
+    if (addTransitionListener()) {
             // If we're running on Lollipop and we have added a listener to the shared element
             // transition, load the thumbnail. The listener will load the full-size image when
             // the transition is complete.

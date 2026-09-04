@@ -15,7 +15,6 @@
  */
 package androidx.test.ext.truth.view;
 
-import android.os.Build;
 import android.view.MotionEvent;
 import android.view.MotionEvent.PointerCoords;
 import android.view.MotionEvent.PointerProperties;
@@ -49,16 +48,8 @@ public final class MotionEventSubject extends Subject {
     check("getAction()").that(actual.getAction()).isEqualTo(action);
   }
 
-  /**
-   * Check the value of {@link MotionEvent#getActionButton()}
-   *
-   * @throws IllegalStateException if called on below Android API 23
-   */
+  /** Check the value of {@link MotionEvent#getActionButton()} */
   public void hasActionButton(int actionButton) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-      throw new IllegalStateException(
-          "getActionButton() is only available on Android API 23 and above");
-    }
     check("getActionButton()").that(actual.getActionButton()).isEqualTo(actionButton);
   }
 

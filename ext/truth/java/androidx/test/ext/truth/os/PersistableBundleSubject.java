@@ -15,9 +15,7 @@
  */
 package androidx.test.ext.truth.os;
 
-import android.os.Build;
 import android.os.PersistableBundle;
-import androidx.annotation.RequiresApi;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
@@ -34,7 +32,6 @@ import java.util.Map;
  *
  * <p>To assert about "regular" {@link android.os.Bundle}s, use {@link BundleSubject}.
  */
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public final class PersistableBundleSubject extends BaseBundleSubject {
 
   public static PersistableBundleSubject assertThat(PersistableBundle persistableBundle) {

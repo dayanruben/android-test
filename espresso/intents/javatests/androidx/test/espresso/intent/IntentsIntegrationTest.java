@@ -61,7 +61,6 @@ import android.app.Instrumentation.ActivityResult;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import androidx.test.espresso.intent.rule.IntentsTestRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -156,12 +155,7 @@ public class IntentsIntegrationTest {
 
   @Test
   public void intentScheme() {
-    String dialerPackage = "com.android.phone";
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      // Starting with Android Lollipop the dialer package has changed.
-      dialerPackage = "com.android.server.telecom";
-    }
+    String dialerPackage = "com.android.server.telecom";
 
     // Testing Scheme "tel:xxx-xxx-xxxx"
     onView(withId(R.id.send_data_to_call_edit_text))
